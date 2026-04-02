@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GPXplorer</title>
+    <link rel="stylesheet" href="styles.css" />
+    <script src="https://cdn.jsdelivr.net/npm/@turf/turf/turf.min.js"></script>
+    <script src="script.js" defer></script>
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.css" />
+    <script src="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.js"></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet.locatecontrol/dist/L.Control.Locate.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet.locatecontrol/dist/L.Control.Locate.min.css" />
+    <script src="https://cdn.jsdelivr.net/npm/leaflet.locatecontrol@[VERSION]/dist/L.Control.Locate.min.js" charset="utf-8"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.css"/>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Oswald&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="nav">
+    <div class="nav-container">
+        <div class="site-logo">GPXplorer</div>
+        <div class="btn"><a href="#map">Mapa</a></div>
+        <div class="btn"><a href="#intro">Wprowadzenie</a></div>
+        <div class="btn"><a href="#about">O stronie</a></div>
+        <svg
+        class="outline"
+        overflow="visible"
+        width="400"
+        height="60"
+        viewBox="0 0 400 60"
+        xmlns="http://www.w3.org/2000/svg"
+        >
+        </svg>
+    </div>
+    </div>
+<div class="button"> 
+<div class="Instrukcje" id="intro">
+    Instrukcje dotyczące przycisków
+</div>
+<div class="button-container">
+    <div class="button-item-divide">
+        <div class="divide-logo">
+            D
+        </div>
+        <span>Przycisk "Divide" służy do podzielenia dodanej warstwy na równe części lub na kilometrowe odstępy podane przez użytkownika.</span>
+    </div>
+    <div class="button-item-merge">
+        <div class="merge-logo">
+            M
+        </div>
+        <span>Przycisk "Merge" służy do połączenia poprzednio podzielonej warstwy. W przypadku występującej widocznej przerwy, pojawi się prosta linia pomiędzy warstwami.</span>
+    </div>
+    <div class="button-item-stat">
+        <div class="stat-logo">
+            S
+        </div>
+        <span>Przycisk "Statistics" służy do wyświetlania statystyk zaznaczonej warstwy. Zostaną wyświetlone statystyki dotyczące: liczby punktów w pliku, suma długości w kilometrach i siła przewyższeń</span>
+    </div>
+    <div class="button-item-clear">
+        <div class="clear-logo">
+            C
+        </div>
+        <span>Przycisk "Clear" służy do całkowitego wyczyszenia mapy lub usunięcia zaznaczonej warstwy na mapie</span>
+    </div>
+    <div class="button-item-down">
+        <div class="down-logo">
+            ↓
+        </div>
+        <span>Przycisk "Download" służy do pobrania zaznaczonej warstwy. Po klinięciu warstwa zostanie zapisana do pliku .GPX</span>
+    </div>
+    <div class="button-item-fill">
+        <div class="fill-logo">
+            F
+        </div>
+        <span>Przycisk "Fill" służy do "wypełnienia" przerwy pomiędzy dwoma zaznaczonymi warstwami. Informacja o punktach dostarcza OSRM API i jest wyświetlana w formie warstwy liniowej na mapie.</span>
+    </div>
+</div>
+    <div class="container">
+        <button type="file" id="fileButton">
+            <svg
+            aria-hidden="true"
+            stroke="currentColor"
+            stroke-width="2"
+            viewBox="0 0 24 24"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+            >
+            <path
+                stroke-width="2"
+                stroke="#fffffff"
+                d="M13.5 3H12H8C6.34315 3 5 4.34315 5 6V18C5 19.6569 6.34315 21 8 21H11M13.5 3L19 8.625M13.5 3V7.625C13.5 8.17728 13.9477 8.625 14.5 8.625H19M19 8.625V11.8125"
+                stroke-linejoin="round"
+                stroke-linecap="round"
+            ></path>
+            <path
+                stroke-linejoin="round"
+                stroke-linecap="round"
+                stroke-width="2"
+                stroke="#fffffff"
+                d="M17 15V18M17 21V18M17 18H14M17 18H20"
+            ></path>
+            </svg>
+            Załącz plik
+        </button>
+    </div>
+      <input type="file" id="fileInput" style="display: none;" />
+    <div id="map" id="Mapa">
+        <dialog id="choose">
+        <form>
+            <label>
+                <input type="radio" name="wybor" value="opcja1" id="opcja1">
+                Podział trasy na równe części
+                <br>
+                <label for="ile">Podaj liczbę:</label>
+                <input type="number" id="ile">
+            </label><br>
+            <label>
+                <input type="radio" name="wybor" value="opcja2" id="opcja2">
+                Podział na odcinki o określonej długości
+                <br>
+                <label for="ile2">Podaj liczbę:</label>
+                <input type="number" id="ile2">
+            </label><br>
+            <div id="buttonDownload">
+                <button id="divide" type="button">Podziel</button>
+            </div>
+        </form>
+        </dialog>
+        <dialog id="dialogDownload">
+        <form>
+            <label for="stext">Podaj nazwę pliku: </label><br>
+            <input type="text" id="stext" name="stext" placeholder="Wpisz nazwę pliku"><br>
+            <label for="select">Zapisz zaznaczone:</label>
+            <input type="radio" id="select" name="select"><br>
+            <div id="buttonDownload">
+            <button id="save">
+            <span>Pobierz</span>
+            </div>
+            </button>
+        </form>
+        </dialog>
+
+    </div>
+    <table id="statsTable">
+        <thead>
+            <tr>
+                <th>Liczba punktów</th>
+                <th>Suma długości (km)</th>
+                <th>Suma przewyższeń</th>
+            </tr>
+        </thead>
+        <tbody>
+        </tbody>
+    </table>
+    <canvas id="elevationChart" width="300" height="50"></canvas>
+</div>
+    <div class="about" id="about">
+            <h3>O stronie</h3>
+        <div class="about-text">
+            <p>GPXplorer to wszechstronna aplikacja internetowa zaprojektowana do zarządzania plikami GPX,
+            umożliwiająca użytkownikom pracę z trasami przedstawionymi jako warstwy liniowe na interaktywnej mapie. 
+            Umożliwia wczytywanie plików, edycję tras poprzez dzielenie i scalanie, a także analizę danych przestrzennych i wizualizację przewyższeń. 
+            Aplikacja wspiera eksport zmodyfikowanych tras oraz oferuje intuicyjne zarządzanie warstwami, co pozwala użytkownikom na pełną kontrolę nad prezentowanymi danymi. 
+            GPXplorer łączy funkcjonalność z prostotą obsługi, dostarczając narzędzie zarówno dla profesjonalistów, jak i pasjonatów aktywności outdoorowych.</p>
+        </div>
+    </div>
+</body>
+</html>
